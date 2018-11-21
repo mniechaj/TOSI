@@ -7,16 +7,24 @@ import scala.util.Random
 object Main {
 
   def main(args: Array[String]): Unit = {
+    val startTime = System.currentTimeMillis()
+
     val message = Source.fromResource("vernam/message_in").getLines.mkString("\n")
     val byteMessage = BigInt(message.getBytes)
-    println(s"Original message: $message \n")
+    println(s"Original message: $message")
+    println(s"Original message bit length: ${byteMessage.bitLength} \n")
 
     val key = BlumBlumShubGenerator.generateKey(byteMessage.bitLength, 512)
+    println(s"Key: ${key.toString(2)}")
+    println(s"Key bit length: ${key.bitLength}")
     val enc = byteMessage ^ key
-    println(s"Encrypted message: $enc \n")
+    println(s"Enc: ${enc.toString(2)} \n")
 
     val dec = key ^ enc
     println(s"Decrypted message: ${new String(dec.toByteArray)} \n")
+
+    val endTime = System.currentTimeMillis()
+    println(s"Elapsed time: ${endTime - startTime}ms")
   }
 
 }
@@ -41,21 +49,21 @@ object BlumBlumShubGenerator {
 
   @tailrec
   private def generateSeed(bitLength: Int, rnd: Random, n: BigInt): BigInt = {
-    val seed = BigInt.probablePrime(bitLength, rnd)
-    if (seed.gcd(n) == 1) seed
+    val seed = BigInt(bitLength, rnd)
+    if (seed.gcd(n) == 1 && seed >= 1 && seed <= n - 1) seed
     else generateSeed(bitLength, rnd, n)
   }
 
   @tailrec
   private def internalGenerateKey(bitLength: Int, ctr: Int, prevX: BigInt, n: BigInt, key: BigInt): BigInt = {
-    if (ctr == bitLength) key
-    else {
-      val x = prevX.pow(2) mod n
-      val k = x mod 2
+  if (ctr == bitLength) key
+  else {
+    val x = prevX.pow(2) mod n
+    val k = x mod 2
 
-      if (k == 1) internalGenerateKey(bitLength, ctr + 1, x, n, key.setBit(ctr))
-      else internalGenerateKey(bitLength, ctr + 1, x, n, key.clearBit(ctr))
-    }
+    if (k == 1) internalGenerateKey(bitLength, ctr + 1, x, n, key.setBit(ctr))
+    else internalGenerateKey(bitLength, ctr + 1, x, n, key.clearBit(ctr))
   }
+}
 
 }
