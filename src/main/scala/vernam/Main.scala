@@ -50,20 +50,23 @@ object BlumBlumShubGenerator {
   @tailrec
   private def generateSeed(bitLength: Int, rnd: Random, n: BigInt): BigInt = {
     val seed = BigInt(bitLength, rnd)
-    if (seed.gcd(n) == 1 && seed >= 1 && seed <= n - 1) seed
+    // Wystarczy, że ziarno będzie większe, większe bądź równe?
+    if (areCoprime(n, seed) && seed > 1 && seed < n - 1) seed
     else generateSeed(bitLength, rnd, n)
   }
 
   @tailrec
   private def internalGenerateKey(bitLength: Int, ctr: Int, prevX: BigInt, n: BigInt, key: BigInt): BigInt = {
-  if (ctr == bitLength) key
-  else {
-    val x = prevX.pow(2) mod n
-    val k = x mod 2
+    if (ctr == bitLength) key
+    else {
+      val x = prevX.pow(2) mod n
+      val k = x mod 2
 
-    if (k == 1) internalGenerateKey(bitLength, ctr + 1, x, n, key.setBit(ctr))
-    else internalGenerateKey(bitLength, ctr + 1, x, n, key.clearBit(ctr))
+      if (k == 1) internalGenerateKey(bitLength, ctr + 1, x, n, key.setBit(ctr))
+      else internalGenerateKey(bitLength, ctr + 1, x, n, key.clearBit(ctr))
+    }
   }
-}
+
+  def areCoprime(p: BigInt, q: BigInt): Boolean = p.gcd(q) == 1
 
 }
