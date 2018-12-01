@@ -67,6 +67,6 @@ object BlumBlumShubGenerator {
     }
   }
 
-  def areCoprime(p: BigInt, q: BigInt): Boolean = p.gcd(q) == 1
+  private def areCoprime(p: BigInt, q: BigInt): Boolean = p.gcd(q) == 1
 
 }
